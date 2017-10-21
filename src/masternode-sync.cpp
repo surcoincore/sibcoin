@@ -19,35 +19,31 @@ CMasternodeSync masternodeSync;
 
 bool CMasternodeSync::CheckNodeHeight(CNode* pnode, bool fDisconnectStuckNodes)
 {
-    CNodeStateStats stats;
-    if(!GetNodeStateStats(pnode->id, stats) || stats.nCommonHeight == -1 || stats.nSyncHeight == -1) return false; // not enough info about this peer
-
-    // Check blocks and headers, allow a small error margin of 1 block
-    if(pCurrentBlockIndex->nHeight - 1 > stats.nCommonHeight) {
-        // This peer probably stuck, don't sync any additional data from it
-        if(fDisconnectStuckNodes) {
-            // Disconnect to free this connection slot for another peer.
-            pnode->fDisconnect = true;
-            LogPrintf("CMasternodeSync::CheckNodeHeight -- disconnecting from stuck peer, nHeight=%d, nCommonHeight=%d, peer=%d\n",
-                        pCurrentBlockIndex->nHeight, stats.nCommonHeight, pnode->id);
-        } else {
-            LogPrintf("CMasternodeSync::CheckNodeHeight -- skipping stuck peer, nHeight=%d, nCommonHeight=%d, peer=%d\n",
-                        pCurrentBlockIndex->nHeight, stats.nCommonHeight, pnode->id);
-        }
-        return false;
-    }
-    else if(pCurrentBlockIndex->nHeight < stats.nSyncHeight - 1) {
-        // This peer announced more headers than we have blocks currently
-        LogPrintf("CMasternodeSync::CheckNodeHeight -- skipping peer, who announced more headers than we have blocks currently, nHeight=%d, nSyncHeight=%d, peer=%d\n",
-                    pCurrentBlockIndex->nHeight, stats.nSyncHeight, pnode->id);
-        return false;
-    }
-
-    return true;
+     static int64_t lastProcess = GetTime();
+ 
+     // if the last call to this function was more than 60 minutes ago (client was in sleep mode) reset the sync process
+     if(GetTime() - lastProcess > 60*60) {
+         Reset();
+         fBlockchainSynced = false;
+     }
+     lastProcess = GetTime();
+ 
+     if(fBlockchainSynced) return true;
+ 
+     if (fImporting || fReindex) return false;
+ 
+     if(!pCurrentBlockIndex) return false;
+ //    if(pCurrentBlockIndex->nTime + 60*60 < GetTime()) return false;
+ 
+     fBlockchainSynced = true;
+ 
+     return true;
 }
+
 
 bool CMasternodeSync::IsBlockchainSynced(bool fBlockAccepted)
 {
+    static bool fBlockchainSynced = false;
     static bool fBlockchainSynced = false;
     static int64_t nTimeLastProcess = GetTime();
     static int nSkipped = 0;
@@ -138,6 +134,7 @@ void CMasternodeSync::Reset()
     nTimeLastGovernanceItem = GetTime();
     nTimeLastFailure = 0;
     nCountFailures = 0;
+
 }
 
 std::string CMasternodeSync::GetAssetName()

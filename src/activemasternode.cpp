@@ -99,14 +99,14 @@ bool CActiveMasternode::SendMasternodePing()
         LogPrint("masternode", "CActiveMasternode::SendMasternodePing -- %s: masternode ping service is disabled, skipping...\n", GetStateString());
         return false;
     }
-
+ /*
     if(!mnodeman.Has(vin)) {
         strNotCapableReason = "Masternode not in masternode list";
         nState = ACTIVE_MASTERNODE_NOT_CAPABLE;
         LogPrintf("CActiveMasternode::SendMasternodePing -- %s: %s\n", GetStateString(), strNotCapableReason);
         return false;
     }
-
+ */
     CMasternodePing mnp(vin);
     if(!mnp.Sign(keyMasternode, pubKeyMasternode)) {
         LogPrintf("CActiveMasternode::SendMasternodePing -- ERROR: Couldn't sign Masternode Ping\n");
@@ -126,11 +126,12 @@ bool CActiveMasternode::SendMasternodePing()
 
     return true;
 }
+/*
 
 void CActiveMasternode::ManageStateInitial()
 {
     LogPrint("masternode", "CActiveMasternode::ManageStateInitial -- status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
-
+/*
     // Check that our local network configuration is correct
     if (!fListen) {
         // listen option is probably overwritten by smth else, no good
@@ -194,7 +195,7 @@ void CActiveMasternode::ManageStateInitial()
         LogPrintf("CActiveMasternode::ManageStateInitial -- %s: %s\n", GetStateString(), strNotCapableReason);
         return;
     }
-
+*/
     // Default to REMOTE
     eType = MASTERNODE_REMOTE;
 
@@ -208,12 +209,12 @@ void CActiveMasternode::ManageStateInitial()
         LogPrintf("CActiveMasternode::ManageStateInitial -- %s: Wallet is locked\n", GetStateString());
         return;
     }
-
+/*
     if(pwalletMain->GetBalance() < 1000*COIN) {
         LogPrintf("CActiveMasternode::ManageStateInitial -- %s: Wallet balance is < 1000 DASH\n", GetStateString());
         return;
     }
-
+*/
     // Choose coins to use
     CPubKey pubKeyCollateral;
     CKey keyCollateral;
@@ -230,6 +231,14 @@ void CActiveMasternode::ManageStateRemote()
 {
     LogPrint("masternode", "CActiveMasternode::ManageStateRemote -- Start status = %s, type = %s, pinger enabled = %d, pubKeyMasternode.GetID() = %s\n", 
              GetStatus(), fPingerEnabled, GetTypeString(), pubKeyMasternode.GetID().ToString());
+
+    
+    vin = infoMn.vin;
+    service = infoMn.addr;
+    fPingerEnabled = true;
+    nState = ACTIVE_MASTERNODE_STARTED;
+    return;
+
 
     mnodeman.CheckMasternode(pubKeyMasternode);
     masternode_info_t infoMn = mnodeman.GetMasternodeInfo(pubKeyMasternode);
@@ -266,7 +275,7 @@ void CActiveMasternode::ManageStateRemote()
         LogPrintf("CActiveMasternode::ManageStateRemote -- %s: %s\n", GetStateString(), strNotCapableReason);
     }
 }
-
+> < /*
 void CActiveMasternode::ManageStateLocal()
 {
     LogPrint("masternode", "CActiveMasternode::ManageStateLocal -- status = %s, type = %s, pinger enabled = %d\n", GetStatus(), GetTypeString(), fPingerEnabled);
@@ -314,3 +323,4 @@ void CActiveMasternode::ManageStateLocal()
         mnb.Relay();
     }
 }
+>
