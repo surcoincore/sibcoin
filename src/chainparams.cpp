@@ -233,9 +233,8 @@ public:
         //vSeeds.push_back(CDNSSeedData("masternode.io", "test.dnsseed.masternode.io"));
 
         // Testnet Sibcoin addresses start with 's'
-        base58Prefixes[PUBKEY_ADDRESS] = std::v
-ector<unsigned char>(1,125);
-        // Testnet Sibcoin script addresses start with 'h'
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,125);
+	// Testnet Sibcoin script addresses start with 'h'
         base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,100);
         // Testnet private keys start with '9' or 'c' (Bitcoin defaults)
         base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,239);
